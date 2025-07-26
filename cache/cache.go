@@ -1,29 +1,44 @@
 package cache
 
-// Interface - реализуйте этот интерфейс
+import "sync"
+
 type Interface interface {
 	Set(k, v string)
 	Get(k string) (v string, ok bool)
 }
 
-// Не меняйте названия структуры и название метода создания экземпляра Cache, иначе не будут проходить тесты
-
 type Cache struct {
-	// TODO: ваш код
+	mu   sync.RWMutex
+	data map[string]string
 }
 
-// NewCache создаёт и возвращает новый экземпляр Cache.
-func NewCache() Interface {
-	// TODO: ваш код
-	panic("implement me")
+func NewCache() *Cache {
+	return &Cache{
+		data: make(map[string]string),
+	}
 }
 
-func (c Cache) Set(k, v string) {
-	// TODO implement me
-	panic("implement me")
+func (c *Cache) Set(k, v string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.data[k] = v
 }
 
-func (c Cache) Get(k string) (v string, ok bool) {
-	// TODO implement me
-	panic("implement me")
+// Get получает значение по ключу
+func (c *Cache) Get(k string) (v string, ok bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	v, ok = c.data[k]
+	return
+}
+
+// Пример использования
+func main() {
+	cache := NewCache()
+	cache.Set("key1", "value1")
+	if val, ok := cache.Get("key1"); ok {
+		println("Found value:", val)
+	} else {
+		println("Value not found")
+	}
 }
